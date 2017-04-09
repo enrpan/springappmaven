@@ -9,10 +9,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.eps.springapp.domain.Product;
+import com.eps.springapp.repository.InMemoryProductDao;
+import com.eps.springapp.repository.ProductDao;
 
 public class SimpleProductManagerTests {
 
-private SimpleProductManager productManager;
+    private SimpleProductManager productManager;
     
     private List<Product> products;
     
@@ -22,9 +24,9 @@ private SimpleProductManager productManager;
     private static String CHAIR_DESCRIPTION = "Chair";
     
     private static String TABLE_DESCRIPTION = "Table";
-    private static Double TABLE_PRICE = new Double(150.10); 
+    private static Double TABLE_PRICE = new Double(150.10);
     
-    private static int POSITIVE_PRICE_INCREASE = 10; 
+    private static int POSITIVE_PRICE_INCREASE = 10;
     
     @Before
     public void setUp() throws Exception {
@@ -42,13 +44,15 @@ private SimpleProductManager productManager;
         product.setPrice(TABLE_PRICE);
         products.add(product);
         
-        productManager.setProducts(products);
-
+        ProductDao productDao = new InMemoryProductDao(products);
+        productManager.setProductDao(productDao);
+        //productManager.setProducts(products);
     }
 
     @Test
     public void testGetProductsWithNoProducts() {
         productManager = new SimpleProductManager();
+        productManager.setProductDao(new InMemoryProductDao(null));
         assertNull(productManager.getProducts());
     }
 
@@ -65,28 +69,30 @@ private SimpleProductManager productManager;
         product = products.get(1);
         assertEquals(TABLE_DESCRIPTION, product.getDescription());
         assertEquals(TABLE_PRICE, product.getPrice());      
-    }
-
+    }   
+    
     @Test
     public void testIncreasePriceWithNullListOfProducts() {
         try {
             productManager = new SimpleProductManager();
+            productManager.setProductDao(new InMemoryProductDao(null));
             productManager.increasePrice(POSITIVE_PRICE_INCREASE);
         }
         catch(NullPointerException ex) {
-            fail("Products list is null.");
+        	fail("Products list is null.");
         }
     }
-
+    
     @Test
     public void testIncreasePriceWithEmptyListOfProducts() {
         try {
             productManager = new SimpleProductManager();
-            productManager.setProducts(new ArrayList<Product>());
+            productManager.setProductDao(new InMemoryProductDao(new ArrayList<Product>()));
+            //productManager.setProducts(new ArrayList<Product>());
             productManager.increasePrice(POSITIVE_PRICE_INCREASE);
         }
         catch(Exception ex) {
-            fail("Products list is empty.");
+        	fail("Products list is empty.");
         }           
     }
     
@@ -103,5 +109,4 @@ private SimpleProductManager productManager;
         product = products.get(1);      
         assertEquals(expectedTablePriceWithIncrease, product.getPrice(), 0);       
     }
-
 }
